@@ -9,40 +9,7 @@ using UnityEngine;
 namespace CrowdedMod.Patches;
 
 internal static class GenericPatches {
-    [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.CmdCheckColor))]
-    public static class PlayerControlCmdCheckColorPatch {
-        public static bool Prefix(PlayerControl __instance, [HarmonyArgument(0)] byte colorId) {
-            Rpc<SetColorRpc>.Instance.Send(__instance, colorId);
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(PlayerTab), nameof(PlayerTab.Update))]
-    public static class PlayerTabIsSelectedItemEquippedPatch {
-        public static void Postfix(PlayerTab __instance)
-        {
-            __instance.currentColorIsEquipped = false;
-        }
-    }
-
-    [HarmonyPatch(typeof(PlayerTab), nameof(PlayerTab.UpdateAvailableColors))]
-    public static class PlayerTabUpdateAvailableColorsPatch
-    {
-        public static bool Prefix(PlayerTab __instance)
-        {
-            __instance.AvailableColors.Clear();
-            for (var i = 0; i < Palette.PlayerColors.Count; i++)
-            {
-                if(!PlayerControl.LocalPlayer || PlayerControl.LocalPlayer.CurrentOutfit.ColorId != i)
-                {
-                    __instance.AvailableColors.Add(i);
-                }
-            }
-
-            return false;
-        }
-    }
-
+    
     // I did not find a use of this method, but still patching for future updates
     // maxExpectedPlayers is unknown, looks like server code tbh
     [HarmonyPatch(typeof(GameOptionsData), nameof(GameOptionsData.AreInvalid))]
@@ -91,15 +58,6 @@ internal static class GenericPatches {
             
             __instance.PlayerCounter.text = $"{fixDummyCounterColor}{GameData.Instance.PlayerCount}/{GameManager.Instance.LogicOptions.MaxPlayers}";
             fixDummyCounterColor = null;
-        }
-    }
-
-    [HarmonyPatch(typeof(PingTracker), nameof(PingTracker.Update))]
-    public static class PingShowerPatch
-    {
-        public static void Postfix(PingTracker __instance)
-        {
-            __instance.text.text += "\n<color=#FFB793>CrowdedMod</color>";
         }
     }
 
