@@ -122,10 +122,13 @@ internal static class GenericPatches {
     {
         public static void Postfix(ref GameOptionsMenu __instance)
         {
-            __instance.GetComponentsInChildren<NumberOption>()
-                .First(o => o.Title == StringNames.GameNumImpostors)
+            var option = __instance.GetComponentsInChildren<NumberOption>(true)
+                .FirstOrDefault(o => o.Title == StringNames.GameNumImpostors);
+            if (option is not null)
+            {
                 // ReSharper disable once PossibleLossOfFraction
-                .ValidRange = new FloatRange(1, CrowdedModPlugin.MaxImpostors);
+                option.ValidRange = new FloatRange(1, CrowdedModPlugin.MaxImpostors);
+            }
         }
     }
 }
