@@ -60,15 +60,6 @@ internal static class GenericPatches {
         }
     }
 
-    [HarmonyPatch(typeof(GameSettingMenu), nameof(GameSettingMenu.OnEnable))]
-    public static class GameSettingMenu_OnEnable // Credits to https://github.com/Galster-dev/GameSettingsUnlocker
-    {
-        public static void Prefix(ref GameSettingMenu __instance)
-        {
-            __instance.HideForOnline = new Il2CppReferenceArray<Transform>(0);
-        }
-    }
-
     // Will be patched with signatures later when BepInEx reveals it
     // [HarmonyPatch(typeof(InnerNetServer), nameof(InnerNetServer.HandleNewGameJoin))]
     // public static class InnerNetSerer_HandleNewGameJoin
