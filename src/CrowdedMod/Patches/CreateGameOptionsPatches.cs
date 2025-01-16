@@ -1,7 +1,7 @@
-﻿using System;
-using AmongUs.GameOptions;
+﻿using AmongUs.GameOptions;
 using HarmonyLib;
 using Reactor.Utilities.Extensions;
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -82,6 +82,7 @@ internal static class CreateGameOptionsPatches
                 }
             }
 
+            if (__instance.GetTargetOptions().GameMode is GameModes.Normal or GameModes.NormalFools)
             {
                 var secondButton = __instance.ImpostorButtons[1];
                 secondButton.SpriteRenderer.enabled = false;
@@ -98,7 +99,8 @@ internal static class CreateGameOptionsPatches
 
                 var firstPassiveButton = firstButton.PassiveButton;
                 firstPassiveButton.OnClick.RemoveAllListeners();
-                firstPassiveButton.OnClick.AddListener((Action)(() => {
+                firstPassiveButton.OnClick.AddListener((Action)(() =>
+                {
                     var newVal = Mathf.Clamp(
                         byte.Parse(secondButtonText.text) - 1,
                         1,
@@ -114,7 +116,8 @@ internal static class CreateGameOptionsPatches
 
                 var thirdPassiveButton = thirdButton.PassiveButton;
                 thirdPassiveButton.OnClick.RemoveAllListeners();
-                thirdPassiveButton.OnClick.AddListener((Action)(() => {
+                thirdPassiveButton.OnClick.AddListener((Action)(() =>
+                {
                     var newVal = Mathf.Clamp(
                         byte.Parse(secondButtonText.text) + 1,
                         1,
@@ -132,6 +135,7 @@ internal static class CreateGameOptionsPatches
     {
         public static bool Prefix(CreateOptionsPicker __instance, [HarmonyArgument(0)] IGameOptions opts)
         {
+            if (__instance.mode != SettingsMode.Host) return true;
             if (__instance.CrewArea)
             {
                 __instance.CrewArea.SetCrewSize(opts.MaxPlayers, opts.NumImpostors);
@@ -150,8 +154,24 @@ internal static class CreateGameOptionsPatches
     [HarmonyPatch(typeof(CreateOptionsPicker), nameof(CreateOptionsPicker.UpdateImpostorsButtons))]
     public static class CreateOptionsPicker_UpdateImpostorsButtons
     {
-        public static bool Prefix()
+        public static bool Prefix(CreateOptionsPicker __instance)
         {
+            if (__instance.mode == SettingsMode.Host) return false;
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(CreateOptionsPicker), nameof(CreateOptionsPicker.Refresh))]
+    public static class CreateOptionsPicker_Refresh
+    {
+        public static bool Prefix(CreateOptionsPicker __instance)
+        {
+            IGameOptions targetOptions = __instance.GetTargetOptions();
+            __instance.UpdateImpostorsButtons(targetOptions.NumImpostors);
+            __instance.UpdateMaxPlayersButtons(targetOptions);
+            __instance.UpdateLanguageButton((uint)targetOptions.Keywords);
+            __instance.MapMenu.UpdateMapButtons((int)targetOptions.MapId);
+            __instance.GameModeText.text = DestroyableSingleton<TranslationController>.Instance.GetString(GameModesHelpers.ModeToName[GameOptionsManager.Instance.CurrentGameOptions.GameMode]);
             return false;
         }
     }

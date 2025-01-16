@@ -1,9 +1,7 @@
 using System.Linq;
 using AmongUs.GameOptions;
-using CrowdedMod.Net;
 using HarmonyLib;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using Reactor.Networking.Rpc;
 using UnityEngine;
 
 namespace CrowdedMod.Patches;
@@ -39,7 +37,8 @@ internal static class GenericPatches {
             if (__instance.LastPlayerCount > __instance.MinPlayers)
             {
                 fixDummyCounterColor = "<color=#00FF00FF>";
-            } else if (__instance.LastPlayerCount == __instance.MinPlayers)
+            }
+            else if (__instance.LastPlayerCount == __instance.MinPlayers)
             {
                 fixDummyCounterColor = "<color=#FFFF00FF>";
             }
@@ -117,18 +116,19 @@ internal static class GenericPatches {
     //     }
     // }
 
-    [HarmonyPatch(typeof(GameOptionsMenu), nameof(GameOptionsMenu.Start))]
-    public static class GameOptionsMenu_Start
+    [HarmonyPatch(typeof(GameOptionsMenu), nameof(GameOptionsMenu.Initialize))]
+    public static class GameOptionsMenu_Initialize
     {
-        public static void Postfix(ref GameOptionsMenu __instance)
+        public static void Postfix(GameOptionsMenu __instance)
         {
-            var option = __instance.GetComponentsInChildren<NumberOption>(true)
-                .FirstOrDefault(o => o.Title == StringNames.GameNumImpostors);
-            if (option is not null)
+            var numberOptions = __instance.GetComponentsInChildren<NumberOption>();
+
+            var impostorsOption = numberOptions.FirstOrDefault(o => o.Title == StringNames.GameNumImpostors);
+            if (impostorsOption != null)
             {
-                // ReSharper disable once PossibleLossOfFraction
-                option.ValidRange = new FloatRange(1, CrowdedModPlugin.MaxImpostors);
+                impostorsOption.ValidRange = new FloatRange(1, CrowdedModPlugin.MaxImpostors);
             }
+
         }
     }
 }
